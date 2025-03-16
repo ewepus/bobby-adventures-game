@@ -4,6 +4,7 @@ using UnityEngine;
 using UnityEngine.UI;
 using UnityEngine.SceneManagement;
 using UnityEngine.SocialPlatforms.Impl;
+using System;
 
 public class LogicScript : MonoBehaviour
 {
@@ -13,8 +14,13 @@ public class LogicScript : MonoBehaviour
     public GameObject gameOverScreen;
     public int highestScore;
     [SerializeField] private Animator animator;
+    public AudioManager audioManager;
+    public PlayerScript playerScript;
+    public bool isNewHighScore = false;
     private void Start()
     {
+        playerScript = GameObject.FindGameObjectWithTag("Player").GetComponent<PlayerScript>();
+        audioManager = GameObject.FindGameObjectWithTag("AudioManager").GetComponent<AudioManager>();
         highestScore = PlayerPrefs.GetInt("highestScore", 0);
         highestScoreText.text = "Highest Score: " + highestScore.ToString();
     }
@@ -22,12 +28,16 @@ public class LogicScript : MonoBehaviour
     [ContextMenu("Increase score")]
     public void AddScore(int scoreToAdd)
     {
-        playerScore += scoreToAdd;
-        scoreText.text = playerScore.ToString();
+        if (playerScript.bobbyIsAlive)
+        {
+            playerScore += scoreToAdd;
+            scoreText.text = playerScore.ToString();
+        }
     }
     public void RestartGame()
     {
-        SceneManager.LoadScene(1);
+        audioManager.buttonSound2.Play();
+        SceneManager.LoadScene(2);
     }
     public void GameOver()
     {
@@ -40,6 +50,8 @@ public class LogicScript : MonoBehaviour
 
         if (playerScore > highestScore)
         {
+            audioManager.highestScoreSound.Play();
+            isNewHighScore = true;
             highestScore = playerScore;
             PlayerPrefs.SetInt("highestScore", playerScore);
             PlayerPrefs.Save();
@@ -48,6 +60,8 @@ public class LogicScript : MonoBehaviour
     }
     public void ReturnToMainMenu()
     {
-        SceneManager.LoadScene(0);
+        audioManager.buttonSound2.Play();
+        audioManager.menuSong.Play();
+        SceneManager.LoadScene(1);
     }
 }

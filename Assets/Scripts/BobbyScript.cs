@@ -10,36 +10,43 @@ public class PlayerScript : MonoBehaviour
     public bool bobbyIsAlive = true;
     public float verticalVelocity;
     [SerializeField] private Animator animator;
+    public AudioManager audioManager;
     void Start()
     {
+        audioManager = GameObject.FindGameObjectWithTag("AudioManager").GetComponent<AudioManager>();
         logicScript = GameObject.FindGameObjectWithTag("Logic").GetComponent<LogicScript>();
     }
     void Update()
     {
-        if (!bobbyIsAlive)
-        {
-            Debug.Log("Nothing ever happens");
-        }
+        if (!bobbyIsAlive) { }
         else
         {
-            verticalVelocity = rigidbody2D.velocity.y;
+            verticalVelocity = rigidbody2D.linearVelocity.y;
 
             if (verticalVelocity > 0) animator.SetBool("isJumping", true);
             else if (verticalVelocity <= 0) animator.SetBool("isJumping", false);
 
-            if (bobbyIsAlive && Input.anyKeyDown) rigidbody2D.velocity = Vector2.up * jumpStrength;
+            if (bobbyIsAlive && Input.anyKeyDown)
+            {
+                audioManager.jumpSound.Play();
+                rigidbody2D.linearVelocity = Vector2.up * jumpStrength;
+            }
 
             if (transform.position.y > 3.25 || transform.position.y < -3.25)
             {
                 logicScript.GameOver();
+                if(!logicScript.isNewHighScore) audioManager.gameOverSound.Play();
                 bobbyIsAlive = false;
             }
         }
     }
     private void OnCollisionEnter2D(Collision2D collision)
     {
-        logicScript.GameOver();
-        bobbyIsAlive = false;
+        if (bobbyIsAlive)
+        {
+            logicScript.GameOver();
+            audioManager.collisionSound.Play();
+            bobbyIsAlive = false;
+        }
     }
 }
-//Input.GetKeyDown(KeyCode.Space) || Input.GetKeyDown(KeyCode.W) || Input.GetKeyDown(KeyCode.UpArrow))
